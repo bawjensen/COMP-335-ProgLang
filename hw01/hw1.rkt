@@ -5,9 +5,9 @@
 ; (the C stands for "core" language)
 (define-type ArithC
   [numC (n : number)]
-  [plusC (left : ArithC)  (right : ArithC)]
-  [multC (left : ArithC)  (right : ArithC)]
-  [ifC   (testC : ArithC) (thenC : ArithC) (elseC : ArithC)]
+  [plusC (left : ArithC)  (right : ArithC)] ; Addition
+  [multC (left : ArithC)  (right : ArithC)] ; Multiplication
+  [ifC   (testC : ArithC) (thenC : ArithC) (elseC : ArithC)] ; Conditional for 0
 )
 
 ; remember the REPL
@@ -19,20 +19,20 @@
 ; and returns the internal representation of the program
 (define (parse [s : s-expression]) : ArithC
   (cond
-    [(s-exp-number? s) (numC (s-exp->number s))]
-    [(and (s-exp-list? s) (= 3 (length (s-exp->list s))))
+    [(s-exp-number? s) (numC (s-exp->number s))] ; Number -> numC
+    [(and (s-exp-list? s) (= 3 (length (s-exp->list s)))) ; List of length 3 -> ArithC (plusC or multC)
       (let ([sl (s-exp->list s)])
         (case (s-exp->symbol (first sl))
-          [(+) (plusC (parse (second sl)) (parse (third sl)))]
-          [(*) (multC (parse (second sl)) (parse (third sl)))]
+          [(+) (plusC (parse (second sl)) (parse (third sl)))] ; + for plusC
+          [(*) (multC (parse (second sl)) (parse (third sl)))] ; * for multC
           [else (error 'parse "syntax error")]
         )
       )
     ]
-    [(and (s-exp-list? s) (= 4 (length (s-exp->list s))))
+    [(and (s-exp-list? s) (= 4 (length (s-exp->list s)))) ; List of length 4 -> ArithC (ifC)
       (let ([sl (s-exp->list s)])
         (case (s-exp->symbol (first sl))
-          [(if0) (ifC (parse (second sl)) (parse (third sl)) (parse (fourth sl))) ]
+          [(if0) (ifC (parse (second sl)) (parse (third sl)) (parse (fourth sl))) ] ; if0 for ifC
           [else (error 'parse "syntax error")]
         )
       )
@@ -46,12 +46,12 @@
 (define (interp [a : ArithC]) : number
   (type-case ArithC a
     [numC (n) n]
-    [plusC (l r) (+ (interp l) (interp r))]
-    [multC (l r) (* (interp l) (interp r))]
+    [plusC (l r) (+ (interp l) (interp r))] ; Use + for plusC
+    [multC (l r) (* (interp l) (interp r))] ; Use * for multC
     [ifC (te th el)
-      (cond
-        [(= 0 (interp te)) (interp th)]
-        [else (interp el)]
+      (cond ; Use cond for ifC
+        [(= 0 (interp te)) (interp th)] ; Parse then
+        [else (interp el)]              ; or parse else
       )
     ]
   )
@@ -59,7 +59,7 @@
 
 ; The combined interp-parse function, eval
 (define (eval [s : s-expression]) : number
-  (interp (parse s))
+  (interp (parse s)) ; eval simply combines parse and interp
 )
 
 ; Testing for invalid syntax (unsupported symbol)
