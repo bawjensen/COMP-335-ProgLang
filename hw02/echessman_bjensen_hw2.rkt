@@ -140,4 +140,16 @@
                   (list (fdC 'f1 'x (appC 'f2 (numC 4)))
                         (fdC 'f2 'y (plusC (idC 'x) (idC 'y)))))
       "name not found")
+
+; Should error, as f1 doesn't exist in list of function definitions
+(test/exn (interp (appC 'f1 (numC 3))
+                  mt-env
+                  empty)
+      "name not found")
+
+; Should error, as x (used to call f1) doesn't exist in env
+(test/exn (interp (appC 'f1 (idC 'x))
+                  mt-env
+                  empty)
+      "name not found")
  
