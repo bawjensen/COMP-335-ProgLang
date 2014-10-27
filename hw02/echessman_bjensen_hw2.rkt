@@ -98,7 +98,8 @@
           "syntax error")
 
 ; Our test expressions - for env, binding, lookup
-(test (lookup 'x (list (bind 'x 15) (bind 'y 5))) 15)
+(test (lookup 'x (list (bind 'x 5))) 5)
+(test (lookup 'x (list (bind 'y 5) (bind 'x 15))) 15)
 (test (lookup 'x (list (bind 'x 75) (bind 'x 5))) 75) ; Finds the first 'x, and returns its value
 (test/exn (lookup 'x mt-env) "name not found")
 
@@ -121,9 +122,16 @@
 
 ; Our test expressions - for interp
 
+; Should work, uses x from env to call f1, which accepts a parameter y
 (test (interp (appC 'f1 (idC 'x))
               (list (bind 'x 3))
               (list (fdC 'f1 'y (plusC (numC 4) (idC 'y)))))
+      7)
+
+; Should work, uses x from env to call f1, which accepts a parameter x (different scope)
+(test (interp (appC 'f1 (idC 'x))
+              (extend-env (bind 'x 3) mt-env)
+              (list (fdC 'f1 'x (plusC (numC 4) (idC 'x)))))
       7)
 
 ; Should error, as x exists only in f1's scope
