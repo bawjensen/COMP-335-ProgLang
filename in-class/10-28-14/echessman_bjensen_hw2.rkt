@@ -8,7 +8,13 @@
   [plusC (left : ExprC) (right : ExprC)]
   [multC (left : ExprC) (right : ExprC)]
   [idC (name : symbol)]
+  [lambdaC (arg : symbol) (body : ExprC)]
   [appC (function : symbol) (arg : ExprC)]
+  )
+
+(define-type Value
+  [numV (num : number)]
+  [funV (arg : symbol) (body : ExprC)]
   )
 
 ; the internal representation of a function definition
@@ -58,31 +64,33 @@
     ))
 
 (define-type Binding
-  [bind (name : symbol) (val : number)])
+  [bind (name : symbol) (val : ExprC)])
  
 (define-type-alias Env (listof Binding))
 (define mt-env empty)
 (define extend-env cons)
 
-(define (lookup [for : symbol] [env : Env]) : number
+(define (lookup [for : symbol] [env : Env]) : ExprC
   (cond
     [(empty? env) (error 'lookup "name not found")]
     [else (cond
             [(symbol=? for (bind-name (first env))) (bind-val (first env))]
             [else (lookup for (rest env))])]))
 
-(define (interp [expr : ExprC] [env : Env] [fds : (listof FunDefC)]) : number
+(define (interp [expr : ExprC] [env : Env]) : ExprC
   (type-case ExprC expr
-    [numC (n) n]
+    [numC (n) (numC n)]
     [idC (n) (lookup n env)]
-    [appC (f a) (local ([define fd (get-fundef f fds)])
-              (interp (fdC-body fd)
-                      (extend-env (bind (fdC-arg fd)
-                                        (interp a env fds))
-                                  mt-env)
-                      fds))]
-    [plusC (l r) (+ (interp l env fds) (interp r env fds))]
-    [multC (l r) (* (interp l env fds) (interp r env fds))]))
+    [lambdaC (a b) (interp b
+                           (extend-env (bind a
+                                             (lookup) mt-env))]
+    [appC (f a) (local ([define fd (lookup f env)])
+                       (interp (fdC-body fd)
+                               (extend-env (bind (fdC-arg fd)
+                                                 a)
+                                           mt-env)))]
+    [plusC (l r) (+ (interp l env) (interp r env))]
+    [multC (l r) (* (interp l env) (interp r env))]))
 
 ; a few example test expressions
 (test (parse '5) (numC 5))
