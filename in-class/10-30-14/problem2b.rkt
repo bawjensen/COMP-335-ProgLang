@@ -19,31 +19,32 @@
 ;(test (greater-than -1 mylist) mylist)
 ;(test (greater-than 1 empty) empty)
   
-(define (merge [l1 : (listof number)] [l2 : (listof number)]) : (listof number)
-  (cond
-    [(empty? l1) l2]
-    [else (merge (all-but-last l1) (cons (last l1) l2))]
-  )
-)
+;(define (merge [l1 : (listof number)] [l2 : (listof number)]) : (listof number)
+;  (cond
+;    [(empty? l1) l2]
+;    [else (merge (all-but-last l1) (cons (last l1) l2))]
+;  )
+;)
   
-(define (all-but-last [l : (listof number)]) : (listof number)
-  (reverse (rest (reverse l)))
-)
-
-(define (last [l : (listof number)]) : number
-  (first (reverse l))
-)
-
-(test (merge (list 1 2) (list 3 4)) (list 1 2 3 4))
-(test (last (list 1 2)) 2)
-(test (all-but-last (list 1 2 3)) (list 1 2))
-(test (all-but-last (list 1)) empty)
-;(test/exn (all-but-last empty) "contract")
-
-
-
-;(define (quicksort [l : (listof number)]) : (listof number)
-;  (cons quicksort 
+;(define (all-but-last [l : (listof number)]) : (listof number)
+;  (reverse (rest (reverse l)))
 ;)
 
-;(test (quicksort mylist) (list 0 1 2 3 4 5 6 7 8 9))
+;(define (last [l : (listof number)]) : number
+;  (first (reverse l))
+;)
+
+;(test (merge (list 1 2) (list 3 4)) (list 1 2 3 4))
+;(test (last (list 1 2)) 2)
+;(test (all-but-last (list 1 2 3)) (list 1 2))
+;(test (all-but-last (list 1)) empty)
+
+
+(define (quicksort [l : (listof number)]) : (listof number)
+  (cond
+    [(empty? l) empty]
+    [else (append (quicksort (less-than (first l) (rest l))) (cons (first l) (quicksort (greater-than (first l) (rest l)))))]
+  )
+)
+
+(test (quicksort mylist) (list 0 1 2 3 4 5 6 7 8 9))
